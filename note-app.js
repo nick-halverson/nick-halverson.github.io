@@ -4,7 +4,7 @@ setTimeout(() => {
 
 function renderApp() {
     
-    const oldNoteAppContainer = document.getElementById('note-app--renderSavedNotes-container');
+    const oldNoteAppContainer = document.getElementById('note-app--main-container');
 
     if (oldNoteAppContainer) {
         oldNoteAppContainer.remove();
@@ -12,7 +12,7 @@ function renderApp() {
 
     const noteAppContainer = document.createElement('div');
     noteAppContainer.innerHTML = `
-        <div id="note-app--renderSavedNotes-container" class="note-app--renderSavedNotes-container">
+        <div id="note-app--main-container" class="note-app--main-container">
             <div>
                 <div>This is the note app</div>
                 <a href="index.html">back to home</a>
@@ -34,7 +34,7 @@ function renderApp() {
     `;
     document.body.appendChild(noteAppContainer);
 
-    renderSavedNotes();
+    setTimeout(() => renderSavedNotes());
 }
 
 function renderSavedNotes() {
@@ -63,12 +63,11 @@ function convertSavedNotesToHTMLElements(savedNotes) {
 
 function generateHTMLElementForNote(note) {
     const noteElement = document.createElement('div');
-    const noteId = generateRandomId();
     noteElement.innerHTML = `
-        <div id="${noteId}" class="note-app--saved-note-container">
+        <div id="${note.id}" class="note-app--saved-note-container">
             <h3>${note.title}</h3>
             <div>${note.body}</div>
-            <div><button onclick="${deleteNote(noteId)}">delete</div>
+            <div><button onclick="deleteNote(${note.id})">delete</div>
         </div>
     `;
     return noteElement
@@ -77,14 +76,19 @@ function generateHTMLElementForNote(note) {
 function deleteNote(noteId) {
     const savedNotes = getSavedNotesFromLocalStorage();
     const newSavedNotes = savedNotes.filter(note => note.id !== noteId);
+
     setUpdatedNotesToLocalStorage(newSavedNotes);
+    renderApp();
 }
 
 function areThereAnySavedNotes() {
     console.log('calling areThereAnySavedNotes()')
     const savedNotes = getSavedNotesFromLocalStorage();
     console.log('savedNotes:', savedNotes);
-    if (savedNotes.length === 0) {
+    if (
+        savedNotes === undefined ||
+        savedNotes.length === 0
+    ) {
         return false;
     }
     else {
@@ -146,7 +150,7 @@ function buildNote(id, title, body) {
 }
 
 function generateRandomId() {
-    return Math.ceil(Math.random() * 100000);
+    return Math.ceil(Math.random() * 1000000);
 }
 
 function getSavedNotesFromLocalStorage() {
@@ -158,18 +162,16 @@ function getSavedNotesFromLocalStorage() {
         return []
     }
     else {
-        const notesObj = JSON.parse(notesJSON);
-        return notesObj.notes;
+        const notes = JSON.parse(notesJSON);
+        return notes;
     }
 }
 
 function generateNewNotes(previouslySavedNotes, newNote) {
-    return {
-        notes: [
+    return [
             ...previouslySavedNotes,
             newNote
-        ]
-    }
+        ];
 }
 
 function setUpdatedNotesToLocalStorage(newNotes) {
